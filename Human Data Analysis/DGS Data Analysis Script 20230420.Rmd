@@ -1,0 +1,522 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,fig.width=15,fig.height=12)
+
+library(lmerTest)
+library(ggplot2)
+library(data.table)
+library(cowplot)
+
+```
+
+```{r}
+######Loading and Processing Data######
+
+
+#Loading data
+data<-read.csv("Human Data/Processed Data/DGS Data L PROCESSED 20230420 1730.csv")
+
+#Melt a dataframe for analyzing positive choices
+posData<-melt(as.data.table(data),
+               id.vars=c(1,3,6:10,49:58,67:70),
+               measure.vars=59:63)
+
+#Rename variable and value columns
+colnames(posData)[22:23]<-c("trait","choice")
+
+#Relabel levels of trait variable
+posData$trait<-factor(posData$trait,labels=c("artistic",
+                                             "healthy",
+                                             "kind",
+                                             "sexy",
+                                             "wealthy"))
+
+
+#Melt a dataframe for analyzing negative choices
+negData<-melt(as.data.table(data),
+               id.vars=c(1,3,6:10,49:58,67:70),
+               measure.vars=64:66)
+
+#Rename variable and value columns
+colnames(negData)[22:23]<-c("domain","choice")
+
+#Relabel levels of trait variable
+negData$domain<-factor(negData$domain,labels=c("moral",
+                                             "pathogen",
+                                             "sex"))
+
+#Convert necessary variables to factors
+posData[,c(1:3,5,7)]<-lapply(posData[,c(1:3,5,7)],as.factor)
+negData[,c(1:3,5,7)]<-lapply(negData[,c(1:3,5,7)],as.factor)
+
+```
+
+
+
+```{r}
+######Analyses######
+
+
+#Positive Traits#
+
+#Do the sexes differ in which traits they reveal?
+posReg1<-aov(choice~trait*sex+Error(PIN),data=posData)
+
+#Does this differ by country?
+posReg2<-aov(choice~trait*sex+trait*country+Error(PIN),data=posData)
+
+#Does this differ by sexual orientation?
+posReg3<-aov(choice~trait*sex*kinsey+Error(PIN),data=posData)
+
+
+
+#Choices by own traits for positive traits
+artReg<-lm(choiceArt~
+             selfArt+
+             selfHealth+
+             selfKind+
+             selfSexy+
+             selfResources,
+           data=data)
+
+healthReg<-lm(choiceHealth~
+             selfArt+
+             selfHealth+
+             selfKind+
+             selfSexy+
+             selfResources,
+           data=data)
+
+kindReg<-lm(choiceKind~
+             selfArt+
+             selfHealth+
+             selfKind+
+             selfSexy+
+             selfResources,
+           data=data)
+
+sexyReg<-lm(choiceSexy~
+             selfArt+
+             selfHealth+
+             selfKind+
+             selfSexy+
+             selfResources,
+           data=data)
+
+#Own traits by choices
+resourcesReg<-lm(choiceWealthy~
+             selfArt+
+             selfHealth+
+             selfKind+
+             selfSexy+
+             selfResources,
+           data=data)
+
+
+
+#Disgusting Traits#
+
+#Do the sexes differ in which traits they reveal?
+negReg1<-aov(choice~domain*sex+Error(PIN),data=negData)
+
+#Does this differ by country?
+negReg2<-aov(choice~domain*sex+domain*country+Error(PIN),data=negData)
+
+#Does this differ by sexual orientation?
+negReg3<-aov(choice~domain*sex+domain*kinsey+Error(PIN),data=negData)
+
+
+
+#Choices by disgust senstivity for disgusting traits
+moralReg<-lm(choiceMoral~
+               tddMoral+
+               tddPath+
+               tddSex,
+             data=data)
+
+pathReg<-lm(choicePath~
+               tddMoral+
+               tddPath+
+               tddSex,
+             data=data)
+
+sexReg<-lm(choiceSex~
+               tddMoral+
+               tddPath+
+               tddSex,
+             data=data)
+
+
+
+```
+
+
+
+```{r}
+######Plots######
+
+
+###Positive Traits###
+
+#Choices by Trait and Sex#
+
+#Plot average choice by trait and sex for positive traits
+posPlot<-qplot(trait,choice,fill=sex,data=posData,
+               xlab="Trait",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)
+
+
+
+#Create a categorical sexual orientation variable based on Kinsey scores
+posData$sexOrient<-ifelse(posData$kinsey<2,"Heterosexual",
+                          ifelse(posData$kinsey>4,"Gay/Lesbian","Bisexual"))
+
+posData$sexOrient<-factor(posData$sexOrient,levels=c("Heterosexual",
+                                                     "Bisexual",
+                                                     "Gay/Lesbian"))
+
+
+
+posData$country<-factor(posData$country,labels=c("U.S.","Poland"))
+levels(posData$country)<-c("Poland","U.S.")
+
+#Plot average choice by trait and sex for positive traits
+posPlotCountry<-qplot(trait,choice,fill=sex,data=posData,
+               xlab="Trait",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)+
+  facet_wrap(~country)
+
+
+
+#Plot average choice by trait and sex for positive traits
+posPlotSO<-qplot(trait,choice,fill=sex,data=posData,
+               xlab="Trait",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)+
+  facet_wrap(~sexOrient)
+
+
+
+#Choices by Own Trait#
+
+#Frequency of choosing artistic options as a function of own artistic ability
+artPlot<-qplot(selfArt,choiceArt,data=data,
+      xlab="Artistic Ability (Self)",
+      ylab="Artistic Ability Option\n(# of Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+
+#Frequency of choosing kindness options as a function of own kindness
+kindPlot<-qplot(selfKind,choiceKind,data=data,
+      xlab="Kindness (Self)",
+      ylab="Kindness Option\n(# of  Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+
+#Frequency of choosing sexiness options as a function of own sexiness
+sexyPlot<-qplot(selfSexy,choiceSexy,data=data,
+      xlab="Sexiness (Self)",
+      ylab="Sexiness Option\n(# of  Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+
+
+
+
+
+###Disgusting Traits###
+
+#Choices by Trait and Sex#
+
+#Plot average choice by trait and sex for positive traits
+negPlot<-qplot(domain,choice,fill=sex,data=negData,
+               xlab="Domain",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)
+
+
+
+negData$country<-factor(negData$country,labels=c("U.S.","Poland"))
+levels(negData$country)<-c("Poland","U.S.")
+
+#Plot average choice by domain and sex for negitive domains
+negPlotCountry<-qplot(domain,choice,fill=sex,data=negData,
+               xlab="Domain",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)+
+  facet_wrap(~country)
+
+
+
+#Create a categorical sexual orientation variable based on kinsey scores
+negData$sexOrient<-ifelse(negData$kinsey<2,"Heterosexual",
+                          ifelse(negData$kinsey>4,"Gay/Lesbian","Bisexual"))
+
+negData$sexOrient<-factor(negData$sexOrient,levels=c("Heterosexual",
+                                                     "Bisexual",
+                                                     "Gay/Lesbian"))
+
+#Plot average choice by trait and sex for positive traits
+negPlotSO<-qplot(domain,choice,fill=sex,data=negData,
+               xlab="Domain",
+               ylab="Number of Times Chosen",
+               geom="blank")+
+  scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
+  geom_bar(stat="summary",fun="mean",position="dodge")+
+  theme_gray(base_size=20)+
+  scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
+  geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
+  geom_jitter(alpha=.1,shape=21,height=.1)+
+  facet_wrap(~sexOrient)
+
+
+
+#Choices by Own Disgust Sensitivity#
+
+#Frequency of choosing moral options as a function of moral disgust sensitivity
+moralPlot<-qplot(tddMoral,choiceMoral,data=data,
+      xlab="Moral Disgust Sensitivity",
+      ylab="Morally Disgusting Option\n(# of  Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+
+#Frequency of choosing pathogen options as a function of pathogen disgust sensitivity
+pathPlot<-qplot(tddPath,choicePath,data=data,
+      xlab="Pathogen Disgust Sensitivity",
+      ylab="Pathogenically Disgusting Option\n(# of  Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+
+#Frequency of choosing pathogen options as a function of pathogen disgust sensitivity
+sexPlot<-qplot(tddSex,choiceSex,data=data,
+      xlab="Sexual Disgust Sensitivity",
+      ylab="Sexually Disgusting Option\n(# of  Times Chosen)",
+      geom="blank")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=20)+
+  geom_jitter()
+
+```
+
+<br>
+<br>
+  
+## Do Negative Information Choices Depend on Doman and Sex?
+<br>
+Yes.  
+<br>
+Disgust domain and sex interact to predict choices in the dating game, *F*(`r unlist(summary(negReg1))[12]`,`r unlist(summary(negReg1))[13]`) = `r round(unlist(summary(negReg1))[21],2)`, *p* = `r ifelse(unlist(summary(negReg1))[24]<.001,"p<.001",round(unlist(summary(negReg1))[24],3))`
+
+```{r} 
+summary(negReg1)
+negPlot 
+```
+
+<br>
+<br>
+
+### Does this differ by country?
+
+<br>
+Not really.
+<br>
+Disgust domain and country interact to predict choices in the dating game, *F*(`r unlist(summary(negReg2))[18]`,`r unlist(summary(negReg2))[19]`) = `r round(unlist(summary(negReg2))[30],2)`, *p* = `r ifelse(unlist(summary(negReg2))[34]<.001,"p<.001",round(unlist(summary(negReg2))[34],3))`
+
+However, the three-way interaction between disgust domain, country, and sex was not significant.
+
+```{r} 
+summary(negReg2)
+negPlotCountry
+```
+
+<br>
+<br>
+
+### Does this differ by sexual orientation?
+
+<br>
+Not really.
+<br>
+Disgust domain and Kinsey score to predict choices in the dating game, *F*(`r unlist(summary(negReg3))[18]`,`r unlist(summary(negReg3))[19]`) = `r round(unlist(summary(negReg3))[30],2)`, *p* = `r ifelse(unlist(summary(negReg3))[34]<.001,"p<.001",round(unlist(summary(negReg3))[34],3))`
+
+However, the three-way interaction between disgust domain, sexual orientation, and sex was not significant.
+
+```{r} 
+summary(negReg3)
+negPlotSO
+```
+
+<br>
+<br>
+
+### Does disgust sensitivity predict game choices?
+
+<br>
+
+Yes.
+<br>
+
+For all domains, greater disgust sensitivity predicts less frequently choosing that domain
+
+<br>
+
+Moral Disgust Sensitivity:
+```{r}
+summary(moralReg)
+```
+
+<br>
+
+Pathogen Disgust Sensitivity:
+```{r}
+summary(pathReg)
+```
+
+<br>
+
+Sexual Disgust Sensitivity:
+```{r}
+summary(sexReg)
+```
+
+<br>
+
+```{r,fig.height=25}
+plot_grid(moralPlot,pathPlot,sexPlot,nrow=3)
+```
+
+<br>
+<br>
+
+
+## Do Positive Information Choices Depend on Doman and Sex?
+
+<br>
+Yes.  
+<br>
+Trait and sex interact to predict choices in the dating game, *F*(`r unlist(summary(posReg1))[12]`,`r unlist(summary(posReg1))[13]`) = `r round(unlist(summary(posReg1))[21],2)`, *p* = `r ifelse(unlist(summary(posReg1))[24]<.001,"p<.001",round(unlist(summary(posReg1))[24],3))`
+
+```{r} 
+summary(posReg1)
+posPlot 
+```
+
+<br>
+<br>
+
+### Does this differ by country?
+
+<br>
+Not really.
+<br>
+Trait and country interact to predict choices in the dating game, *F*(`r unlist(summary(posReg2))[18]`,`r unlist(summary(posReg2))[19]`) = `r round(unlist(summary(posReg2))[30],2)`, *p* = `r ifelse(unlist(summary(posReg2))[34]<.001,"p<.001",round(unlist(summary(posReg2))[34],3))`
+
+However, the three-way interaction between trait, country, and sex was not significant.
+
+```{r} 
+summary(posReg2)
+posPlotCountry
+```
+
+<br>
+<br>
+
+### Does this differ by sexual orientation?
+
+<br>
+Yes
+<br>
+Trait, Kinsey score, and sex interacted to predict choices in the dating game, *F*(`r unlist(summary(posReg3))[24]`,`r unlist(summary(posReg3))[25]`) = `r round(unlist(summary(posReg3))[39],2)`, *p* = `r ifelse(unlist(summary(posReg3))[44]<.001,"p<.001",round(unlist(summary(posReg3))[44],3))`
+
+
+```{r} 
+summary(posReg3)
+posPlotSO
+```
+
+<br>
+<br>
+
+### Do own traits predict the traits chosen?
+
+<br>
+
+For some.
+
+<br>
+
+People who rated themselves higher in artistic ability (*b* = `r summary(artReg)$coefficients[2,1]`, *p* = `r ifelse(summary(artReg)$coefficients[2,4]<.001,"p<.001",round(summary(artReg)$coefficients[2,4],3))`) or sexiness (*b* = `r summary(sexyReg)$coefficients[5,1]`, *p* = `r ifelse(summary(sexyReg)$coefficients[5,4]<.001,"p<.001",round(summary(sexyReg)$coefficients[5,4],3))`) were more likely to choose these traits. However, people who rated themselves higher in kindness were *less* likely to choose kindness options (*b* = `r summary(kindReg)$coefficients[4,1]`, *p* = `r ifelse(summary(kindReg)$coefficients[4,4]<.001,"p<.001",round(summary(kindReg)$coefficients[4,4],3))`).
+
+<br>
+
+Artistic ability:
+```{r}
+summary(artReg)
+```
+
+<br>
+
+Sexiness:
+```{r}
+summary(sexyReg)
+```
+
+<br>
+
+Kindness:
+```{r}
+summary(kindReg)
+```
+
+<br>
+
+```{r,fig.height=25}
+plot_grid(artPlot,sexyPlot,kindPlot,nrow=3)
+```
+
