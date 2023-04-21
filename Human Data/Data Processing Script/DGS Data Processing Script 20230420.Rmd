@@ -1,0 +1,161 @@
+---
+title: "DGS Data Processing Script 20230420"
+author: "Daniel Conroy-Beam"
+date: '2023-04-20'
+output: html_document
+---
+
+
+
+#Loading data
+```{r}
+#Load the full dataframe
+fulldata<-read.csv("Human Data/Raw Data/DGS Data RAW 20230420.csv")
+
+#Create a copy of the dataframe
+data<-fulldata
+
+#Translate/rename columns
+colnames(data)<-c("country","consent","code","plays","sex","kinsey",
+                  "partnerSex","age", paste0("pos",1:6),
+                  paste0("disgust",1:6),paste0("tdds",1:21),
+                  "selfArt","selfHealth","selfKind","selfSexy",
+                  "selfResources","idealArt","idealHealth","idealKind",
+                  "idealSexy","idealResources","children","numChild",
+                  "childYoungest","childOldest","milkCereal","attention",
+                  "relstat","timestamp")
+
+#In fact just remove consent because everyone consented
+data<-data[,-2]
+
+```
+
+
+
+
+#Recoding and Composites
+```{r}
+
+#Recode sex
+data$sex<-ifelse(data$sex=="f",0,1)
+
+#Recode partner sex
+data$partnerSex<-ifelse(data$partnerSex=="f",0,1)
+
+#Recode positive information choices
+data[,8:13]<-ifelse(data[,8:13]=="a","sexy",
+                    ifelse(data[,8:13]=="b","kind",
+                           ifelse(data[,8:13]=="c","wealthy",
+                                  ifelse(data=="d","healthy","artistic"))))
+
+#Recode disgusting information choices
+data[,14:19]<-ifelse(data[,14:19]=="a","pathogen",
+                     ifelse(data[,14:19]=="b","sex","moral"))
+
+#Recode children status
+data$children<-ifelse(data$children=="Nie"|data$children=="No",0,1)
+
+#Recode relationship status
+data$relstat<-ifelse(data$relstat=="single",0,
+                     ifelse(data$relstat=="other",2,1))
+
+
+#Convert necessary variables to factors
+data[,c(1,4,6,8:19,51,55,57)]<-lapply(data[,c(1,4,6,8:19,51,55,57)],as.factor)
+
+
+#Compute the number of times each positive option was chosen
+data$choiceArt<-rowSums(data[,8:13]=="artistic")
+data$choiceKind<-rowSums(data[,8:13]=="kind")
+data$choiceSexy<-rowSums(data[,8:13]=="sexy")
+data$choiceWealthy<-rowSums(data[,8:13]=="wealthy")
+
+#Compute the number of times each disgusting option was chosen
+data$choiceMoral<-rowSums(data[,14:19]=="moral")
+data$choicePath<-rowSums(data[,14:19]=="pathogen")
+data$choiceSex<-rowSums(data[,14:19]=="sex")
+
+
+#Compute the subscores of the three-domain disgust scale
+data$tddMoral<-rowMeans(data[,19+seq(1,21,3)],na.rm=T)
+data$tddPath<-rowMeans(data[,19+seq(3,21,3)],na.rm=T)
+data$tddSex<-rowMeans(data[,19+seq(2,21,3)],na.rm=T)
+
+#Compute total TDDS score
+data$tddTotal<-rowMeans(data[,20:40],na.rm=T)
+
+#Create a unique ID number for each participant
+data$PIN<-1:nrow(data)
+
+#Rearrange variables
+data<-data[,c(70,58,1:7,57,51:54,56,55,8:50,59:69)]
+
+
+
+```
+
+
+#Exclusions
+```{r}
+#Liberal exclusion criteria
+
+#Eliminate participants with invalid completion codes
+lData<-subset(data,data$code %in% unique(data$code)[c(1:6,9:11,13,15,18,20:21,
+                                                      24,27,29:30,33,35,
+                                                      39,41,43,45:48,
+                                                      50:54,56,58,61)])
+              
+#Eliminate participants who have played multiple times  
+lData<-subset(lData,lData$plays==1)
+
+#Eliminate very young participants
+lData<-subset(lData,lData$age>=18)
+
+#Eliminate people whose oldest child is younger than their youngest
+lData<-subset(lData,(lData$childOldest>=lData$childYoungest) | 
+                is.na(lData$childOldest) + is.na((lData$childYoungest)))
+
+#Eliminate people who failed the attention check
+lData<-subset(lData,lData$attention==2)
+
+
+#Conservative exclusion criteria
+
+#Remove participants whose oldest child is the same age as their youngest
+cData<-subset(lData,(lData$childOldest!=lData$childYoungest) | 
+                is.na(lData$childOldest) + is.na((lData$childYoungest)))
+
+#Remove people with negative ages for youngest child
+cData<-subset(cData,cData$childYoungest>0 | is.na(cData$childYoungest))
+
+#A large number of predominately gay or lesbian participants report having children
+#This excludes them
+cData<-subset(cData,!(cData$children==1 & cData$kinsey>3))
+
+#Remove people in "other" relationship statuses
+cData<-subset(cData,cData$relstat!="other")
+
+#Remove attention check as it's no longer needed
+lData<-lData[,-15]
+cData<-cData[,-15]
+
+```
+
+
+
+#Save data
+```{r}
+#Save data with the liberal exclusion criteria
+write.csv(lData,
+          paste0("Human Data/Processed Data/DGS Data L PROCESSED ",
+                 format(Sys.time(),format="%Y%m%d %H%M"),
+                 ".csv"),
+          row.names=F)
+
+#Save data with the conservative exclusion criteria
+write.csv(cData,
+          paste0("Human Data/Processed Data/DGS Data C PROCESSED ",
+                 format(Sys.time(),format="%Y%m%d %H%M"),
+                 ".csv"),
+          row.names=F)
+```
