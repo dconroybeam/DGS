@@ -145,6 +145,58 @@ cData<-cData[,-15]
 ```
 
 
+#Mate Value Computation
+```{r}
+#Separate into male and female dataframes
+lfemales<-subset(lData,lData$sex==0)
+lmales<-subset(lData,lData$sex==1)
+
+cfemales<-subset(cData,cData$sex==0)
+cmales<-subset(cData,cData$sex==1)
+
+
+#Calculate average preferences
+lfpref<-colMeans(lfemales[,54:58],na.rm=T)
+lmpref<-colMeans(lmales[,54:58],na.rm=T)
+
+cfpref<-colMeans(cfemales[,54:58],na.rm=T)
+cmpref<-colMeans(cmales[,54:58],na.rm=T)
+
+
+#Compute MVs
+lfemales$mv<-apply(lfemales,1,function(x)
+  
+  10*(-1*dist(rbind(x[49:53],lmpref))+sqrt(10^2*5))/sqrt(10^2*5)
+  
+  )
+
+lmales$mv<-apply(lmales,1,function(x)
+  
+  10*(-1*dist(rbind(x[49:53],lfpref))+sqrt(10^2*5))/sqrt(10^2*5)
+  
+  )
+
+
+cfemales$mv<-apply(cfemales,1,function(x)
+  
+  10*(-1*dist(rbind(x[49:53],cmpref))+sqrt(10^2*5))/sqrt(10^2*5)
+  
+  )
+
+cmales$mv<-apply(cmales,1,function(x)
+  
+  10*(-1*dist(rbind(x[49:53],cfpref))+sqrt(10^2*5))/sqrt(10^2*5)
+  
+  )
+
+
+#Rbind dataframes back together
+lData<-rbind(lmales,lfemales)
+cData<-rbind(cmales,cfemales)
+
+```
+
+
 
 #Save data
 ```{r}

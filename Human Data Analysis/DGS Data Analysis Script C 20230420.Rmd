@@ -12,8 +12,8 @@ library(cowplot)
 ######Loading and Processing Data######
 
 
-#Loading data
-data<-read.csv("Human Data/Processed Data/DGS Data L PROCESSED 20230420 2308.csv")
+#Loading data (loading the data based on the conservative exclusion criteria)
+data<-read.csv("Human Data/Processed Data/DGS Data C PROCESSED 20230420 2308.csv")
 
 #Melt a dataframe for analyzing positive choices
 posData<-melt(as.data.table(data),
@@ -551,7 +551,7 @@ For some.
 
 <br>
 
-People who rated themselves higher in artistic ability (*b* = `r summary(artReg)$coefficients[2,1]`, *p* = `r ifelse(summary(artReg)$coefficients[2,4]<.001,"p<.001",round(summary(artReg)$coefficients[2,4],3))`) or sexiness (*b* = `r summary(sexyReg)$coefficients[5,1]`, *p* = `r ifelse(summary(sexyReg)$coefficients[5,4]<.001,"p<.001",round(summary(sexyReg)$coefficients[5,4],3))`) were more likely to choose these traits. However, people who rated themselves higher in kindness were *less* likely to choose kindness options (*b* = `r summary(kindReg)$coefficients[4,1]`, *p* = `r ifelse(summary(kindReg)$coefficients[4,4]<.001,"p<.001",round(summary(kindReg)$coefficients[4,4],3))`). However, this does not replicate with the more conservative exclusion criteria.
+People who rated themselves higher in artistic ability (*b* = `r summary(artReg)$coefficients[2,1]`, *p* = `r ifelse(summary(artReg)$coefficients[2,4]<.001,"p<.001",round(summary(artReg)$coefficients[2,4],3))`) or sexiness (*b* = `r summary(sexyReg)$coefficients[5,1]`, *p* = `r ifelse(summary(sexyReg)$coefficients[5,4]<.001,"p<.001",round(summary(sexyReg)$coefficients[5,4],3))`) were more likely to choose these traits. However, people who rated themselves higher in kindness were *less* likely to choose kindness options (*b* = `r summary(kindReg)$coefficients[4,1]`, *p* = `r ifelse(summary(kindReg)$coefficients[4,4]<.001,"p<.001",round(summary(kindReg)$coefficients[4,4],3))`).
 
 <br>
 
