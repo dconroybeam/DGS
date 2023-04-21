@@ -46,7 +46,7 @@ data$partnerSex<-ifelse(data$partnerSex=="f",0,1)
 data[,8:13]<-ifelse(data[,8:13]=="a","sexy",
                     ifelse(data[,8:13]=="b","kind",
                            ifelse(data[,8:13]=="c","wealthy",
-                                  ifelse(data=="d","healthy","artistic"))))
+                                  ifelse(data[,8:13]=="d","healthy","artistic"))))
 
 #Recode disgusting information choices
 data[,14:19]<-ifelse(data[,14:19]=="a","pathogen",
@@ -64,8 +64,10 @@ data$relstat<-ifelse(data$relstat=="single",0,
 data[,c(1,4,6,8:19,51,55,57)]<-lapply(data[,c(1,4,6,8:19,51,55,57)],as.factor)
 
 
+
 #Compute the number of times each positive option was chosen
 data$choiceArt<-rowSums(data[,8:13]=="artistic")
+data$choiceHealth<-rowSums(data[,8:13]=="healthy")
 data$choiceKind<-rowSums(data[,8:13]=="kind")
 data$choiceSexy<-rowSums(data[,8:13]=="sexy")
 data$choiceWealthy<-rowSums(data[,8:13]=="wealthy")
@@ -76,6 +78,7 @@ data$choicePath<-rowSums(data[,14:19]=="pathogen")
 data$choiceSex<-rowSums(data[,14:19]=="sex")
 
 
+
 #Compute the subscores of the three-domain disgust scale
 data$tddMoral<-rowMeans(data[,19+seq(1,21,3)],na.rm=T)
 data$tddPath<-rowMeans(data[,19+seq(3,21,3)],na.rm=T)
@@ -84,13 +87,13 @@ data$tddSex<-rowMeans(data[,19+seq(2,21,3)],na.rm=T)
 #Compute total TDDS score
 data$tddTotal<-rowMeans(data[,20:40],na.rm=T)
 
+
+
 #Create a unique ID number for each participant
 data$PIN<-1:nrow(data)
 
 #Rearrange variables
-data<-data[,c(70,58,1:7,57,51:54,56,55,8:50,59:69)]
-
-
+data<-data[,c(71,58,1:7,57,51:54,56,55,8:50,59:70)]
 
 ```
 
