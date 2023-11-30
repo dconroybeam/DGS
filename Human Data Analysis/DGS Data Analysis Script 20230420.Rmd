@@ -1,3 +1,8 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,fig.width=15,fig.height=12)
 
@@ -222,7 +227,7 @@ posPlot<-qplot(trait,choice,fill=sex,data=posData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=40)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)
@@ -239,8 +244,7 @@ posData$sexOrient<-factor(posData$sexOrient,levels=c("Heterosexual",
 
 
 
-posData$country<-factor(posData$country,labels=c("U.S.","Poland"))
-levels(posData$country)<-c("Poland","U.S.")
+posData$country<-factor(posData$country,labels=c("Poland","U.S."),levels=c("pl","en"))
 
 #Plot average choice by trait and sex for positive traits
 posPlotCountry<-qplot(trait,choice,fill=sex,data=posData,
@@ -249,11 +253,12 @@ posPlotCountry<-qplot(trait,choice,fill=sex,data=posData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)+
-  facet_wrap(~country)
+  facet_wrap(~country)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
@@ -264,11 +269,12 @@ posPlotSO<-qplot(trait,choice,fill=sex,data=posData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(posData$trait)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)+
-  facet_wrap(~sexOrient)
+  facet_wrap(~sexOrient)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
@@ -280,7 +286,7 @@ artPlot<-qplot(selfArt,choiceArt,data=data,
       ylab="Artistic Ability Option\n(# of Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 
@@ -290,7 +296,7 @@ kindPlot<-qplot(selfKind,choiceKind,data=data,
       ylab="Kindness Option\n(# of  Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 
@@ -300,7 +306,7 @@ sexyPlot<-qplot(selfSexy,choiceSexy,data=data,
       ylab="Sexiness Option\n(# of  Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 
@@ -319,14 +325,14 @@ negPlot<-qplot(domain,choice,fill=sex,data=negData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=40)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)
 
 
 
-negData$country<-factor(negData$country,labels=c("U.S.","Poland"))
+negData$country<-factor(negData$country,labels=c("Poland","U.S."),levels=c("pl","en"))
 levels(negData$country)<-c("Poland","U.S.")
 
 #Plot average choice by domain and sex for negitive domains
@@ -336,11 +342,12 @@ negPlotCountry<-qplot(domain,choice,fill=sex,data=negData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)+
-  facet_wrap(~country)
+  facet_wrap(~country)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
@@ -359,11 +366,12 @@ negPlotSO<-qplot(domain,choice,fill=sex,data=negData,
                geom="blank")+
   scale_x_discrete(labels=tools::toTitleCase(levels(negData$domain)))+
   geom_bar(stat="summary",fun="mean",position="dodge")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   scale_fill_discrete(name="Sex",labels=c("Female","Male"))+
   geom_errorbar(stat="summary",fun.data="mean_cl_boot",position="dodge")+
   geom_jitter(alpha=.1,shape=21,height=.1)+
-  facet_wrap(~sexOrient)
+  facet_wrap(~sexOrient)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
@@ -375,7 +383,7 @@ moralPlot<-qplot(tddMoral,choiceMoral,data=data,
       ylab="Morally Disgusting Option\n(# of  Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 
@@ -385,7 +393,7 @@ pathPlot<-qplot(tddPath,choicePath,data=data,
       ylab="Pathogenically Disgusting Option\n(# of  Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 
@@ -395,7 +403,7 @@ sexPlot<-qplot(tddSex,choiceSex,data=data,
       ylab="Sexually Disgusting Option\n(# of  Times Chosen)",
       geom="blank")+
   geom_smooth(method="lm")+
-  theme_gray(base_size=20)+
+  theme_gray(base_size=30)+
   geom_jitter()
 
 ```
@@ -411,7 +419,7 @@ Disgust domain and sex interact to predict choices in the dating game, *F*(`r un
 
 Controlling for relationship status, disgust senstivity, preferences, own traits, or mate value did not affect this interaction.
 
-```{r} 
+```{r, out.width="75%",out.height="75%"} 
 summary(negReg1)
 negPlot 
 ```
@@ -502,7 +510,7 @@ Trait and sex interact to predict choices in the dating game, *F*(`r unlist(summ
 
 Controlling for relationship status, disgust senstivity, preferences, own traits, or mate value did not affect this interaction.
 
-```{r} 
+```{r,out.width="75%",out.height="75%"} 
 summary(posReg1)
 posPlot 
 ```
