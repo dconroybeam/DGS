@@ -208,6 +208,41 @@ sexReg<-lm(choiceSex~
 
 
 
+#Load in pre-ratings of digust items
+disRat<-read.csv("Human Data/Processed Data/DGS Disgust Items.csv")
+
+#Create a dataframe for analysis
+disgustItems<-data.frame("sex"=rep(c(0,1),each=6*3),
+                         "domain"=rep(c("pathogen","sex","moral"),each=6),
+                         "item"=rep(1:6,times=3))
+
+#Compute average disgust rating at the item level
+disgustItems$rating<-c(colMeans(disRat[disRat$Sex=="Female",-1]),
+                       colMeans(disRat[disRat$Sex=="Male",-1]))
+
+#Determine the number of times each item was chosen
+disgustItems$choice<-c(sapply(c("pathogen","sex","moral"),function(x) sapply(1:6,function(y) sum(data[data$sex==0,y+21]==x))),
+                       sapply(c("pathogen","sex","moral"),function(x) sapply(1:6,function(y) sum(data[data$sex==1,y+21]==x))))
+
+#How disgusting an item was did not predict how frequently it was chosen
+disgustRatingReg<-lm(choice~rating*domain*sex,data=disgustItems)
+
+
+#Repeat the above but collapsing by sex because it had no significant effects:
+
+#Create a dataframe for analysis
+disgustItemsNS<-data.frame("domain"=rep(c("pathogen","sex","moral"),each=6),
+                         "item"=rep(1:6,times=3))
+
+#Compute average disgust rating at the item level
+disgustItemsNS$rating<-colMeans(disRat[,-1])
+
+#Determine the number of times each item was chosen
+disgustItemsNS$choice<-c(sapply(c("pathogen","sex","moral"),function(x) sapply(1:6,function(y) sum(data[,y+21]==x))))
+
+#How disgusting an item was did not predict how frequently it was chosen
+disgustRatingReg<-lm(choice~rating+domain,data=disgustItemsNS)
+
 ```
 
 
@@ -405,6 +440,12 @@ sexPlot<-qplot(tddSex,choiceSex,data=data,
   geom_smooth(method="lm")+
   theme_gray(base_size=30)+
   geom_jitter()
+
+
+negChoicePlot<-qplot(rating,choice,data=disgustItems,
+                     xlab="Item Disgust Rating",ylab="Frequency of Item Choice")+
+  geom_smooth(method="lm")+
+  theme_gray(base_size=30)
 
 ```
 
